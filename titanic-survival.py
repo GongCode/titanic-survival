@@ -1,6 +1,5 @@
-import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder, LabelEncoder
+from sklearn.preprocessing import LabelEncoder
 from sklearn import model_selection
 from xgboost import XGBClassifier
 
@@ -21,11 +20,10 @@ for dataset in clean_data:
 
 drop_column = ['PassengerId','Cabin', 'Ticket']
 changed_train.drop(drop_column, axis=1, inplace = True)
+changed_test.drop(drop_column, axis=1, inplace = True)
 
 for dataset in clean_data:
 	dataset['FamilySize'] = dataset['SibSp'] + dataset['Parch'] + 1
-	dataset['IsAlone'] = 1
-	dataset['IsAlone'].loc[dataset['FamilySize'] > 1] = 0
 	dataset['Title'] = dataset['Name'].str.split(", ", expand=True)[1].str.split(".", expand=True)[0]
 	dataset['FareBin'] = pd.qcut(dataset['Fare'], 4)
 	dataset['AgeBin'] = pd.cut(dataset['Age'].astype(int), 5)
@@ -51,7 +49,7 @@ XGBClassifier()
 alg = XGBClassifier()
 
 cv_split = model_selection.ShuffleSplit(n_splits = 10, test_size = .3, train_size = .6, random_state = 0 )
-cv_results = model_selection.cross_validate(alg, changed_train[changed_train_x_bin], np.ravel(changed_train[Target]), cv  = cv_split, return_train_score=True)
+cv_results = model_selection.cross_validate(alg, changed_train[changed_train_x_bin], pd.Series.ravel(changed_train[Target]), cv  = cv_split, return_train_score=True)
 
 print(cv_results['train_score'].mean())
 print(cv_results['test_score'].mean())
